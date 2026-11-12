@@ -1,3 +1,296 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* =========================================================
+   PALETY KOLORÓW MOTYWU (TRYB JASNY)
+   ========================================================= */
+:root,
+[data-theme-color="emerald"] {
+  --accent-50: 236 253 245;
+  --accent-100: 209 250 229;
+  --accent-200: 167 243 208;
+  --accent-300: 110 231 183;
+  --accent-400: 52 211 153;
+  --accent-500: 16 185 129;
+  --accent-600: 5 150 105;
+  --accent-700: 4 120 87;
+  --accent-800: 6 95 70;
+  --accent-900: 6 78 59;
+  --accent-950: 2 44 34;
+}
+
+[data-theme-color="pink"] {
+  --accent-50: 253 242 248;
+  --accent-100: 252 231 243;
+  --accent-200: 251 207 232;
+  --accent-300: 249 168 212;
+  --accent-400: 244 114 182;
+  --accent-500: 236 72 153;
+  --accent-600: 219 39 119;
+  --accent-700: 190 24 93;
+  --accent-800: 157 23 77;
+  --accent-900: 131 24 67;
+  --accent-950: 80 7 36;
+}
+
+[data-theme-color="beige"] {
+  --accent-50: 250 246 240;
+  --accent-100: 243 235 224;
+  --accent-200: 232 218 200;
+  --accent-300: 214 192 165;
+  --accent-400: 194 166 132;
+  --accent-500: 168 137 100;
+  --accent-600: 145 114 78;
+  --accent-700: 120 92 60;
+  --accent-800: 96 73 47;
+  --accent-900: 74 56 36;
+  --accent-950: 46 34 21;
+}
+
+[data-theme-color="rose"] {
+  --accent-50: 255 241 242;
+  --accent-100: 255 228 230;
+  --accent-200: 254 205 211;
+  --accent-300: 253 164 175;
+  --accent-400: 251 113 133;
+  --accent-500: 244 63 94;
+  --accent-600: 225 29 72;
+  --accent-700: 190 18 60;
+  --accent-800: 159 18 57;
+  --accent-900: 136 19 55;
+  --accent-950: 76 5 25;
+}
+
+[data-theme-color="amber"] {
+  --accent-50: 255 251 235;
+  --accent-100: 254 243 199;
+  --accent-200: 253 230 138;
+  --accent-300: 252 211 77;
+  --accent-400: 251 191 36;
+  --accent-500: 245 158 11;
+  --accent-600: 217 119 6;
+  --accent-700: 180 83 9;
+  --accent-800: 146 64 14;
+  --accent-900: 120 53 15;
+  --accent-950: 69 26 3;
+}
+
+[data-theme-color="indigo"] {
+  --accent-50: 238 242 255;
+  --accent-100: 224 231 255;
+  --accent-200: 199 210 254;
+  --accent-300: 165 180 252;
+  --accent-400: 129 140 248;
+  --accent-500: 99 102 241;
+  --accent-600: 79 70 229;
+  --accent-700: 67 56 202;
+  --accent-800: 55 48 163;
+  --accent-900: 49 46 129;
+  --accent-950: 30 27 75;
+}
+
+[data-theme-color="burgundy"] {
+  --accent-50: 253 242 244;
+  --accent-100: 251 229 233;
+  --accent-200: 245 200 209;
+  --accent-300: 234 156 172;
+  --accent-400: 214 102 126;
+  --accent-500: 180 56 84;
+  --accent-600: 136 19 55;
+  --accent-700: 112 16 45;
+  --accent-800: 90 13 37;
+  --accent-900: 68 10 28;
+  --accent-950: 44 5 18;
+}
+
+/* =========================================================
+   DOPASOWANIE AKCENTÓW W TRYBIE CIEMNYM (.dark)
+   ========================================================= */
+.dark[data-theme-color="emerald"],
+.dark {
+  --accent-50: 14 38 30;
+  --accent-100: 20 55 43;
+  --accent-200: 28 78 60;
+  --accent-600: 16 185 129;
+  --accent-700: 52 211 153;
+  --accent-800: 167 243 208;
+  --accent-900: 209 250 229;
+}
+
+.dark[data-theme-color="pink"] {
+  --accent-50: 54 18 36;
+  --accent-100: 80 24 52;
+  --accent-200: 112 32 72;
+  --accent-600: 236 72 153;
+  --accent-700: 244 114 182;
+  --accent-800: 251 207 232;
+  --accent-900: 252 231 243;
+}
+
+.dark[data-theme-color="beige"] {
+  --accent-50: 44 36 27;
+  --accent-100: 64 52 38;
+  --accent-200: 89 72 52;
+  --accent-600: 184 152 114;
+  --accent-700: 214 192 165;
+  --accent-800: 232 218 200;
+  --accent-900: 243 235 224;
+}
+
+.dark[data-theme-color="rose"] {
+  --accent-50: 48 16 24;
+  --accent-100: 72 22 35;
+  --accent-200: 102 28 48;
+  --accent-600: 244 63 94;
+  --accent-700: 251 113 133;
+  --accent-800: 254 205 211;
+  --accent-900: 255 228 230;
+}
+
+.dark[data-theme-color="amber"] {
+  --accent-50: 46 30 12;
+  --accent-100: 69 44 16;
+  --accent-200: 98 62 20;
+  --accent-600: 245 158 11;
+  --accent-700: 251 191 36;
+  --accent-800: 253 230 138;
+  --accent-900: 254 243 199;
+}
+
+.dark[data-theme-color="indigo"] {
+  --accent-50: 24 27 58;
+  --accent-100: 34 39 84;
+  --accent-200: 47 54 115;
+  --accent-600: 99 102 241;
+  --accent-700: 129 140 248;
+  --accent-800: 199 210 254;
+  --accent-900: 224 231 255;
+}
+
+.dark[data-theme-color="burgundy"] {
+  --accent-50: 46 12 22;
+  --accent-100: 70 18 33;
+  --accent-200: 98 24 46;
+  --accent-600: 190 48 82;
+  --accent-700: 234 112 142;
+  --accent-800: 245 200 209;
+  --accent-900: 251 229 233;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: #f8fafc;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dark body {
+  background-color: #020617;
+  color: #f8fafc;
+}
+
+/* =========================================================
+   GLOBALNE WSPARCIE TRYBU CIEMNEGO DLA KART I TABEL
+   ========================================================= */
+.dark .bg-white {
+  background-color: #0f172a !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-50\/70,
+.dark .bg-slate-50\/50,
+.dark .bg-slate-50\/40,
+.dark .bg-slate-50\/80 {
+  background-color: #1e293b !important;
+}
+
+.dark .bg-slate-100 {
+  background-color: #1e293b !important;
+}
+
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-50\/60:hover,
+.dark .hover\:bg-slate-100:hover,
+.dark .hover\:bg-slate-100\/80:hover {
+  background-color: #334155 !important;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-200\/80 {
+  border-color: #1e293b !important;
+}
+
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #1e293b !important;
+}
+
+.dark .text-slate-900 {
+  color: #f8fafc !important;
+}
+
+.dark .text-slate-800 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+}
+
+.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="number"],
+.dark input[type="date"],
+.dark input[type="time"],
+.dark input[type="tel"],
+.dark select,
+.dark textarea {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Paski przewijania */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
