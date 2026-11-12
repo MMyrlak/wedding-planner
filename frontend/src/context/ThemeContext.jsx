@@ -43,17 +43,23 @@ export const ThemeProvider = ({ children }) => {
     localStorage.setItem("wedding_theme_color", themeColor);
   }, [themeColor]);
 
-  // Pobranie zapisanego koloru z konfiguracji wesela po zalogowaniu
+  // Pobranie zapisanego koloru i nazwy wesela po zalogowaniu
   useEffect(() => {
     const syncWeddingTheme = async () => {
-      if (!isAuthenticated) return;
+      if (!isAuthenticated) {
+        document.title = "Wedding Planner – Organizacja Wesela";
+        return;
+      }
       try {
         const res = await api.get("/wedding/settings");
         if (res.data?.theme_color) {
           setThemeColor(res.data.theme_color);
         }
+        if (res.data?.wedding_name) {
+          document.title = `${res.data.wedding_name} | Wedding Planner`;
+        }
       } catch (err) {
-        console.error("Nie udało się zsynchronizować koloru motywu:", err);
+        console.error("Nie udało się zsynchronizować ustawień motywu:", err);
       }
     };
 
