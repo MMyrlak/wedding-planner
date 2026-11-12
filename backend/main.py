@@ -10,6 +10,7 @@ from models import (
     TimelineEventResponse,
     UpcomingInstallmentAlert,
     UserResponse,
+    UserDarkModeUpdate
 )
 from routers import admin as admin_router
 from routers import auth as auth_router
