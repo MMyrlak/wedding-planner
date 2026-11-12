@@ -83,6 +83,7 @@ def init_db() -> None:
             is_admin INTEGER DEFAULT 0,
             wedding_id INTEGER REFERENCES weddings(id) ON DELETE SET NULL,
             role_label TEXT DEFAULT 'Para Młoda',
+            dark_mode INTEGER DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
         """,
@@ -187,6 +188,7 @@ def init_db() -> None:
         _ensure_column(client, "users", "is_admin", "INTEGER DEFAULT 0")
         _ensure_column(client, "users", "wedding_id", "INTEGER REFERENCES weddings(id) ON DELETE SET NULL")
         _ensure_column(client, "users", "role_label", "TEXT DEFAULT 'Para Młoda'")
+        _ensure_column(client, "users", "dark_mode", "INTEGER DEFAULT 0")
 
         for tbl in ["wedding_tables", "guests", "budget_items", "timeline_events", "vendors"]:
             _ensure_column(client, tbl, "wedding_id", "INTEGER REFERENCES weddings(id) ON DELETE CASCADE")

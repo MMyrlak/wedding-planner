@@ -55,6 +55,18 @@ app.include_router(reports.router)
 def health_check():
     return {"status": "ok", "service": "wedding-planner-backend", "version": "2.1.0"}
 
+@app.patch("/auth/dark-mode")
+def update_user_dark_mode(
+    payload: UserDarkModeUpdate,
+    current_user: UserResponse = Depends(get_current_user),
+):
+    val = 1 if payload.dark_mode else 0
+    with get_db() as client:
+        client.execute(
+            "UPDATE users SET dark_mode = ? WHERE id = ?",
+            [val, current_user.id],
+        )
+    return {"dark_mode": val}
 
 @app.get("/dashboard/stats", response_model=DashboardStats, tags=["Dashboard"])
 def get_dashboard_stats(current_user: UserResponse = Depends(get_current_user)):

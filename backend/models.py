@@ -25,12 +25,15 @@ class UserResponse(UserBase):
     is_approved: int = 0
     is_admin: int = 0
     wedding_id: Optional[int] = None
-    role_label: Optional[str] = "Para Młoda"
+    role_label: Optional[str] = None
+    dark_mode: int = 0
     created_at: Optional[Any] = None
 
     model_config = ConfigDict(from_attributes=True)
 
-
+class UserDarkModeUpdate(BaseModel):
+    dark_mode: int
+    
 class UserStatusUpdate(BaseModel):
     is_approved: int = Field(ge=0, le=1)
 

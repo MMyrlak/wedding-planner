@@ -15,7 +15,7 @@ export const THEME_OPTIONS = [
 ];
 
 export const ThemeProvider = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem("wedding_dark_mode");
@@ -43,6 +43,13 @@ export const ThemeProvider = ({ children }) => {
     localStorage.setItem("wedding_theme_color", themeColor);
   }, [themeColor]);
 
+  // Synchronizacja trybu ciemnego z profilem użytkownika po zalogowaniu
+  useEffect(() => {
+    if (isAuthenticated && user && user.dark_mode !== undefined && user.dark_mode !== null) {
+      setDarkMode(Boolean(user.dark_mode));
+    }
+  }, [isAuthenticated, user]);
+
   // Pobranie zapisanego koloru i nazwy wesela po zalogowaniu
   useEffect(() => {
     const syncWeddingTheme = async () => {
@@ -67,7 +74,15 @@ export const ThemeProvider = ({ children }) => {
   }, [isAuthenticated]);
 
   const toggleDarkMode = () => {
-    setDarkMode((prev) => !prev);
+    setDarkMode((prev) => {
+      const next = !prev;
+      if (isAuthenticated) {
+        api.patch("/auth/dark-mode", { dark_mode: next ? 1 : 0 }).catch((err) => {
+          console.error("Nie udało się zapisać trybu ciemnego na koncie:", err);
+        });
+      }
+      return next;
+    });
   };
 
   return (

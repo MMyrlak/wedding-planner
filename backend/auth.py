@@ -68,7 +68,8 @@ def get_current_user(
     with get_db() as client:
         result = client.execute(
             """
-            SELECT id, email, is_approved, is_admin, wedding_id, role_label, created_at
+            SELECT id, email, is_approved, is_admin, wedding_id, role_label,
+                   COALESCE(dark_mode, 0) as dark_mode, created_at
             FROM users
             WHERE email = ? LIMIT 1
             """,
