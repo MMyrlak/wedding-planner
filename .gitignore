@@ -1,14 +1,22 @@
-# Node
-node_modules/
-dist/
-.env.local
-
-# Python
-backend/venv/
+# Środowisko Python i zależności
+venv/
+.venv/
 __pycache__/
 *.py[cod]
-.env
 
-# Database
+# Node / Vite
+node_modules/
+dist/
+.vite/
+
+# Zmienne środowiskowe i sekrety
+.env
+.env.local
 *.db
-*.sqlite
+*.sqlite3
+
+# Systemowe i IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
