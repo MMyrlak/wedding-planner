@@ -568,9 +568,17 @@ class QrCardsPdfExportRequest(BaseModel):
     custom_message: str
     card_w_mm: float = 85.0
     card_h_mm: float = 55.0
-    font_family: str = "DejaVuSans"
+    font_family: str = "DejaVuSerif"
     font_size: float = 9.5
+    text_color: str = "#1f2937"
+    bg_color: str = "#ffffff"
+    border_color: str = "#cbd5e1"
+    border_style: str = "solid"  # "solid" | "double" | "dashed" | "none"
+    qr_color: str = "#065f46"
+    qr_style: str = "rounded"    # "square" | "rounded" | "dots" | "gapped"
+    qr_position: str = "right"   # "right" | "left" | "bottom"
     show_salutation: bool = True
+    crop_marks: bool = True
 
 class VendorCandidateGroupCreate(BaseModel):
     name: str

@@ -407,7 +407,15 @@ def export_qr_cards_pdf(
         card_h_mm=payload.card_h_mm,
         font_family=payload.font_family,
         font_size=payload.font_size,
+        text_color=payload.text_color,
+        bg_color=payload.bg_color,
+        border_color=payload.border_color,
+        border_style=payload.border_style,
+        qr_color=payload.qr_color,
+        qr_style=payload.qr_style,
+        qr_position=payload.qr_position,
         show_salutation=payload.show_salutation,
+        crop_marks=payload.crop_marks,
     )
     return Response(
         content=pdf_bytes,
