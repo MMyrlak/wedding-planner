@@ -17,8 +17,10 @@ import {
   Clock,
   Copy,
   Check,
+  Edit3,
 } from "lucide-react";
 import api from "../api/client";
+import InvitationPrintStudio from "../components/InvitationPrintStudio";
 
 const TABS = [
   { id: "catering", label: "Kuchnia i Diety", icon: Utensils },
@@ -104,6 +106,30 @@ export const Reports = () => {
     navigator.clipboard.writeText(url);
     setCopiedUrl(url);
     setTimeout(() => setCopiedUrl(null), 2000);
+  };
+
+  const handleSaveSalutation = async (inv, newSalutation) => {
+    const cleanText = newSalutation.trim();
+    if (!cleanText || cleanText === inv.salutation) return;
+
+    try {
+      await api.patch("/invitations/salutation", {
+        guest_ids: inv.guest_ids || [],
+        rsvp_group_id: inv.rsvp_group_id,
+        invitation_salutation: cleanText,
+      });
+
+      setInvitationsData((prev) =>
+        prev.map((item) =>
+          item.rsvp_group_id === inv.rsvp_group_id
+            ? { ...item, salutation: cleanText }
+            : item
+        )
+      );
+    } catch (err) {
+      console.error("Błąd zapisu treści zaproszenia:", err);
+      alert("Nie udało się zapisać zmienionego tekstu zaproszenia.");
+    }
   };
 
   const formatMoney = (val) =>
@@ -774,7 +800,19 @@ export const Reports = () => {
                           <tr key={inv.rsvp_group_id} className="hover:bg-slate-50/60">
                             <td className="py-3.5 px-4 font-mono text-slate-400">{idx + 1}</td>
                             <td className="py-3.5 px-4 font-bold text-slate-900 text-sm">
-                              {inv.salutation}
+                              <div className="relative flex items-center group max-w-xs">
+                                <input
+                                  type="text"
+                                  defaultValue={inv.salutation}
+                                  onBlur={(e) => handleSaveSalutation(inv, e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") e.target.blur();
+                                  }}
+                                  title="Kliknij, aby edytować treść zaproszenia (Enter lub kliknięcie obok zapisuje)"
+                                  className="w-full pr-7 pl-2.5 py-1.5 rounded-lg border border-transparent hover:border-slate-300 focus:border-emerald-500 bg-transparent focus:bg-white text-slate-900 font-bold text-sm focus:outline-none transition-colors"
+                                />
+                                <Edit3 className="w-3.5 h-3.5 text-slate-400 opacity-0 group-hover:opacity-100 pointer-events-none absolute right-2 transition-opacity" />
+                              </div>
                             </td>
                             <td className="py-3.5 px-4 text-slate-600">
                               {inv.members_names.join(", ")} ({inv.members_count} os.)
@@ -822,6 +860,8 @@ export const Reports = () => {
                   </table>
                 </div>
               </div>
+
+              <InvitationPrintStudio invitations={invitationsData} />
             </div>
           )}
 

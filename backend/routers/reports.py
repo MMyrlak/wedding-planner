@@ -603,6 +603,7 @@ def _build_invitations_list(client, wid: int, base_url: str) -> List[InvitationP
         result.append(
             InvitationPreviewItem(
                 rsvp_group_id=gid,
+                guest_ids=[m["id"] for m in members],
                 salutation=salutation,
                 members_names=members_names,
                 members_count=len(members),

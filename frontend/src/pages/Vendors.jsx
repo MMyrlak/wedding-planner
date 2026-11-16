@@ -10,8 +10,10 @@ import {
   AlertCircle,
   X,
   Filter,
+  Scale,
 } from "lucide-react";
 import api from "../api/client";
+import VendorCandidatesSection from "../components/VendorCandidatesSection";
 
 const VENDOR_CATEGORIES = [
   "Sala Weselna",
@@ -30,6 +32,7 @@ export const Vendors = () => {
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState("contracted");
 
   const [selectedCategory, setSelectedCategory] = useState("");
   const [contractFilter, setContractFilter] = useState("");
@@ -169,21 +172,57 @@ export const Vendors = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Rejestr Usługodawców
+            Usługodawcy i Porównanie Ofert
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Baza kontaktów, stawki wykonawców oraz weryfikacja podpisanych umów.
+            Baza zakontraktowanych wykonawców oraz lista rozważanych ofert podzielona na własne grupy.
           </p>
         </div>
 
+        {activeTab === "contracted" && (
+          <button
+            onClick={handleOpenAddModal}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-xs font-semibold shadow-sm transition-colors self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Dodaj Usługodawcę</span>
+          </button>
+        )}
+      </div>
+
+      {/* Przełącznik zakładek: Wybrani vs Rozważani */}
+      <div className="bg-white p-1.5 rounded-2xl border border-slate-100 shadow-sm flex flex-wrap gap-1.5">
         <button
-          onClick={handleOpenAddModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-xs font-semibold shadow-sm transition-colors self-start sm:self-auto"
+          type="button"
+          onClick={() => setActiveTab("contracted")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            activeTab === "contracted"
+              ? "bg-emerald-600 text-white shadow-xs"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+          }`}
         >
-          <Plus className="w-4 h-4" />
-          <span>Dodaj Usługodawcę</span>
+          <Briefcase className="w-4 h-4" />
+          <span>Wybrani Usługodawcy ({vendors.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("candidates")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            activeTab === "candidates"
+              ? "bg-emerald-600 text-white shadow-xs"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+          }`}
+        >
+          <Scale className="w-4 h-4" />
+          <span>Rozważani / Porównanie Ofert</span>
         </button>
       </div>
+
+      {activeTab === "candidates" ? (
+        <VendorCandidatesSection onPromoted={fetchVendors} />
+      ) : (
+        <>
 
       {/* Górne wskaźniki podsumowujące */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -500,6 +539,8 @@ export const Vendors = () => {
             </form>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

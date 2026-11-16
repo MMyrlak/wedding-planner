@@ -176,6 +176,49 @@ def init_db() -> None:
             price REAL DEFAULT 0.0,
             contract_signed INTEGER DEFAULT 0
         );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS invitation_templates (
+            wedding_id INTEGER PRIMARY KEY REFERENCES weddings(id) ON DELETE CASCADE,
+            image_base64 TEXT NOT NULL,
+            width_mm REAL DEFAULT 105.0,
+            height_mm REAL DEFAULT 148.0,
+            text_x_pct REAL DEFAULT 10.0,
+            text_y_pct REAL DEFAULT 45.0,
+            box_w_pct REAL DEFAULT 80.0,
+            box_h_pct REAL DEFAULT 25.0,
+            font_family TEXT DEFAULT 'DejaVuSerif',
+            font_size REAL DEFAULT 16.0,
+            font_color TEXT DEFAULT '#1f2937',
+            text_align TEXT DEFAULT 'center'
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS vendor_candidate_groups (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            wedding_id INTEGER REFERENCES weddings(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            sort_order INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS vendor_candidates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            wedding_id INTEGER REFERENCES weddings(id) ON DELETE CASCADE,
+            group_id INTEGER REFERENCES vendor_candidate_groups(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            contact_phone TEXT,
+            contact_email TEXT,
+            website_url TEXT,
+            offered_price REAL DEFAULT 0.0,
+            rating INTEGER DEFAULT 0,
+            pros TEXT,
+            cons TEXT,
+            notes TEXT,
+            status TEXT DEFAULT 'considering',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
         """
     ]
 

@@ -1,12 +1,14 @@
 from contextlib import asynccontextmanager
 from datetime import date, datetime
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 
 from auth import get_current_user
 from database import get_db, init_db, row_to_dict, rows_to_dicts
 from models import (
     DashboardStats,
+    InvitationSalutationUpdate,
     TimelineEventResponse,
     UpcomingInstallmentAlert,
     UserResponse,
@@ -16,7 +18,16 @@ from routers import admin as admin_router
 from routers import auth as auth_router
 from routers import budget, checklist, guests, reports, tables, timeline, vendors, wedding_settings
 from routers.wedding_settings import _get_or_create_wedding_id
-
+from invitation_pdf import (
+    build_invitations_a4_pdf,
+    build_qr_cards_a4_pdf,
+    process_uploaded_template,
+)
+from models import (
+    InvitationTemplateSettings,
+    InvitationsPdfExportRequest,
+    QrCardsPdfExportRequest,
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -230,3 +241,176 @@ def get_dashboard_stats(current_user: UserResponse = Depends(get_current_user)):
             upcoming_timeline=upcoming_timeline,
             upcoming_installments=upcoming_installments,
         )
+
+@app.patch("/invitations/salutation")
+def update_invitation_salutation(
+    payload: InvitationSalutationUpdate,
+    current_user: UserResponse = Depends(get_current_user),
+):
+    clean_text = payload.invitation_salutation.strip()
+    if not clean_text:
+        raise HTTPException(status_code=400, detail="Treść zaproszenia nie może być pusta")
+
+    with get_db() as client:
+        wid = _get_or_create_wedding_id(client, current_user)
+        if payload.guest_ids:
+            placeholders = ",".join(["?"] * len(payload.guest_ids))
+            client.execute(
+                f"""
+                UPDATE guests
+                SET invitation_salutation = ?
+                WHERE wedding_id = ? AND id IN ({placeholders})
+                """,
+                [clean_text, wid, *payload.guest_ids],
+            )
+        elif payload.rsvp_group_id:
+            if payload.rsvp_group_id.startswith("single-"):
+                gid = int(payload.rsvp_group_id.replace("single-", ""))
+                client.execute(
+                    "UPDATE guests SET invitation_salutation = ? WHERE wedding_id = ? AND id = ?",
+                    [clean_text, wid, gid],
+                )
+            else:
+                client.execute(
+                    "UPDATE guests SET invitation_salutation = ? WHERE wedding_id = ? AND rsvp_group_id = ?",
+                    [clean_text, wid, payload.rsvp_group_id],
+                )
+        else:
+            raise HTTPException(status_code=400, detail="Brak przypisanych gości")
+
+    return {"status": "ok", "invitation_salutation": clean_text}
+
+@app.get("/invitations/template")
+def get_invitation_template(current_user: UserResponse = Depends(get_current_user)):
+    with get_db() as client:
+        wid = _get_or_create_wedding_id(client, current_user)
+        res = client.execute(
+            "SELECT * FROM invitation_templates WHERE wedding_id = ?",
+            [wid],
+        )
+        if not res.rows:
+            return None
+        return row_to_dict(res.rows[0])
+
+
+@app.post("/invitations/template/upload")
+async def upload_invitation_template(
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(get_current_user),
+):
+    raw = await file.read()
+    try:
+        img_b64 = process_uploaded_template(file.filename or "template.png", raw)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Błąd przetwarzania pliku: {e}")
+
+    with get_db() as client:
+        wid = _get_or_create_wedding_id(client, current_user)
+        existing = client.execute(
+            "SELECT wedding_id FROM invitation_templates WHERE wedding_id = ?",
+            [wid],
+        )
+        if existing.rows:
+            client.execute(
+                "UPDATE invitation_templates SET image_base64 = ? WHERE wedding_id = ?",
+                [img_b64, wid],
+            )
+        else:
+            client.execute(
+                "INSERT INTO invitation_templates (wedding_id, image_base64) VALUES (?, ?)",
+                [wid, img_b64],
+            )
+        res = client.execute(
+            "SELECT * FROM invitation_templates WHERE wedding_id = ?",
+            [wid],
+        )
+        return row_to_dict(res.rows[0])
+
+
+@app.patch("/invitations/template/settings")
+def update_invitation_template_settings(
+    payload: InvitationTemplateSettings,
+    current_user: UserResponse = Depends(get_current_user),
+):
+    with get_db() as client:
+        wid = _get_or_create_wedding_id(client, current_user)
+        client.execute(
+            """
+            UPDATE invitation_templates
+            SET width_mm = ?, height_mm = ?, text_x_pct = ?, text_y_pct = ?,
+                box_w_pct = ?, box_h_pct = ?, font_family = ?, font_size = ?,
+                font_color = ?, text_align = ?
+            WHERE wedding_id = ?
+            """,
+            [
+                payload.width_mm,
+                payload.height_mm,
+                payload.text_x_pct,
+                payload.text_y_pct,
+                payload.box_w_pct,
+                payload.box_h_pct,
+                payload.font_family,
+                payload.font_size,
+                payload.font_color,
+                payload.text_align,
+                wid,
+            ],
+        )
+    return {"status": "ok"}
+
+
+@app.post("/invitations/export-pdf")
+def export_invitations_pdf(
+    payload: InvitationsPdfExportRequest,
+    current_user: UserResponse = Depends(get_current_user),
+):
+    if not payload.salutations:
+        raise HTTPException(status_code=400, detail="Lista zaproszeń jest pusta")
+
+    with get_db() as client:
+        wid = _get_or_create_wedding_id(client, current_user)
+        res = client.execute(
+            "SELECT * FROM invitation_templates WHERE wedding_id = ?",
+            [wid],
+        )
+        if not res.rows:
+            raise HTTPException(status_code=404, detail="Najpierw wgraj wzór zaproszenia (PNG lub DOCX)")
+        tpl = row_to_dict(res.rows[0])
+
+    pdf_bytes = build_invitations_a4_pdf(
+        salutations=payload.salutations,
+        tpl=tpl,
+        per_page=payload.per_page,
+        crop_marks=payload.crop_marks,
+    )
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": 'attachment; filename="Zaproszenia_A4.pdf"'},
+    )
+
+
+@app.post("/invitations/qr-cards-pdf")
+def export_qr_cards_pdf(
+    payload: QrCardsPdfExportRequest,
+    current_user: UserResponse = Depends(get_current_user),
+):
+    if not payload.cards:
+        raise HTTPException(status_code=400, detail="Brak pozycji do wygenerowania")
+
+    pdf_bytes = build_qr_cards_a4_pdf(
+        cards=[c.model_dump() for c in payload.cards],
+        custom_message=payload.custom_message,
+        card_w_mm=payload.card_w_mm,
+        card_h_mm=payload.card_h_mm,
+        font_family=payload.font_family,
+        font_size=payload.font_size,
+        show_salutation=payload.show_salutation,
+    )
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": 'attachment; filename="Bileciki_QR_A4.pdf"'},
+    )

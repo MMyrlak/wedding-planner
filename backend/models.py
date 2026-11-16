@@ -55,6 +55,10 @@ class TokenResponse(BaseModel):
 class TokenData(BaseModel):
     email: Optional[str] = None
 
+class InvitationSalutationUpdate(BaseModel):
+    guest_ids: List[int] = []
+    rsvp_group_id: Optional[str] = None
+    invitation_salutation: str
 
 # ==========================================
 # WEDDING SETTINGS & CO-ORGANIZERS
@@ -304,6 +308,7 @@ class HotelReportSummary(BaseModel):
 
 class InvitationPreviewItem(BaseModel):
     rsvp_group_id: str
+    guest_ids: List[int] = []
     salutation: str
     members_names: List[str]
     members_count: int
@@ -533,3 +538,78 @@ class DashboardStats(BaseModel):
     toddler_weight: float
     upcoming_timeline: List[TimelineEventResponse]
     upcoming_installments: List[UpcomingInstallmentAlert]
+
+class InvitationTemplateSettings(BaseModel):
+    width_mm: float = 105.0
+    height_mm: float = 148.0
+    text_x_pct: float = 10.0
+    text_y_pct: float = 45.0
+    box_w_pct: float = 80.0
+    box_h_pct: float = 25.0
+    font_family: str = "DejaVuSerif"
+    font_size: float = 16.0
+    font_color: str = "#1f2937"
+    text_align: str = "center"
+
+
+class InvitationsPdfExportRequest(BaseModel):
+    salutations: List[str]
+    per_page: int = 4
+    crop_marks: bool = True
+
+
+class QrCardItem(BaseModel):
+    salutation: str
+    rsvp_url: str
+
+
+class QrCardsPdfExportRequest(BaseModel):
+    cards: List[QrCardItem]
+    custom_message: str
+    card_w_mm: float = 85.0
+    card_h_mm: float = 55.0
+    font_family: str = "DejaVuSans"
+    font_size: float = 9.5
+    show_salutation: bool = True
+
+class VendorCandidateGroupCreate(BaseModel):
+    name: str
+    sort_order: int = 0
+
+
+class VendorCandidateGroupUpdate(BaseModel):
+    name: str
+    sort_order: Optional[int] = None
+
+
+class VendorCandidateCreate(BaseModel):
+    group_id: int
+    name: str
+    contact_phone: Optional[str] = None
+    contact_email: Optional[str] = None
+    website_url: Optional[str] = None
+    offered_price: float = 0.0
+    rating: int = 0
+    pros: Optional[str] = None
+    cons: Optional[str] = None
+    notes: Optional[str] = None
+    status: str = "considering"
+
+
+class VendorCandidateUpdate(BaseModel):
+    group_id: int
+    name: str
+    contact_phone: Optional[str] = None
+    contact_email: Optional[str] = None
+    website_url: Optional[str] = None
+    offered_price: float = 0.0
+    rating: int = 0
+    pros: Optional[str] = None
+    cons: Optional[str] = None
+    notes: Optional[str] = None
+    status: str = "considering"
+
+
+class VendorCandidatePromote(BaseModel):
+    add_to_budget: bool = True
+    contract_signed: bool = False
