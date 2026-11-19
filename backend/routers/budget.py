@@ -4,6 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from auth import get_current_user
 from database import get_db, row_to_dict, rows_to_dicts
 from models import (
+    BudgetInstallmentCreate,
+    BudgetInstallmentResponse,
+    BudgetInstallmentUpdate,
     BudgetItemCreate,
     BudgetItemResponse,
     BudgetItemUpdate,
@@ -117,3 +120,123 @@ def delete_budget_item(
         if not res.rows:
             raise HTTPException(status_code=404, detail="Pozycja budżetowa nie istnieje")
         client.execute("DELETE FROM budget_items WHERE id = ? AND wedding_id = ?", [item_id, wid])
+
+# ==========================================
+# HARMONOGRAM RAT I ZALICZEK
+# ==========================================
+
+@router.get("/installments", response_model=List[BudgetInstallmentResponse])
+def get_budget_installments(current_user: UserResponse = Depends(get_current_user)):
+    with get_db() as client:
+        wid = _get_or_create_wedding_id(client, current_user)
+        res = client.execute(
+            """
+            SELECT bi.*, b.item_name, b.category
+            FROM budget_installments bi
+            JOIN budget_items b ON bi.budget_item_id = b.id
+            WHERE bi.wedding_id = ?
+            ORDER BY bi.paid ASC, COALESCE(bi.due_date, '9999-12-31') ASC, bi.id ASC
+            """,
+            [wid],
+        )
+        return rows_to_dicts(res.rows)
+
+
+@router.post("/installments", response_model=BudgetInstallmentResponse, status_code=status.HTTP_201_CREATED)
+def create_budget_installment(
+    inst: BudgetInstallmentCreate,
+    current_user: UserResponse = Depends(get_current_user),
+):
+    with get_db() as client:
+        wid = _get_or_create_wedding_id(client, current_user)
+        parent = client.execute(
+            "SELECT id, item_name, category FROM budget_items WHERE id = ? AND wedding_id = ?",
+            [inst.budget_item_id, wid],
+        )
+        if not parent.rows:
+            raise HTTPException(status_code=404, detail="Powiązana pozycja budżetowa nie istnieje")
+        parent_data = row_to_dict(parent.rows[0])
+
+        res = client.execute(
+            """
+            INSERT INTO budget_installments (wedding_id, budget_item_id, installment_name, amount, due_date, paid, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            RETURNING *
+            """,
+            [
+                wid,
+                inst.budget_item_id,
+                inst.installment_name.strip(),
+                inst.amount,
+                inst.due_date,
+                inst.paid,
+                inst.notes.strip() if inst.notes else None,
+            ],
+        )
+        created = row_to_dict(res.rows[0])
+        created["item_name"] = parent_data["item_name"]
+        created["category"] = parent_data["category"]
+        return created
+
+
+@router.put("/installments/{inst_id}", response_model=BudgetInstallmentResponse)
+def update_budget_installment(
+    inst_id: int,
+    inst: BudgetInstallmentUpdate,
+    current_user: UserResponse = Depends(get_current_user),
+):
+    with get_db() as client:
+        wid = _get_or_create_wedding_id(client, current_user)
+        existing = client.execute(
+            """
+            SELECT bi.*, b.item_name, b.category
+            FROM budget_installments bi
+            JOIN budget_items b ON bi.budget_item_id = b.id
+            WHERE bi.id = ? AND bi.wedding_id = ?
+            """,
+            [inst_id, wid],
+        )
+        if not existing.rows:
+            raise HTTPException(status_code=404, detail="Rata nie istnieje")
+
+        current_data = row_to_dict(existing.rows[0])
+        update_data = inst.model_dump(exclude_unset=True)
+        merged = {**current_data, **update_data}
+
+        res = client.execute(
+            """
+            UPDATE budget_installments
+            SET installment_name = ?, amount = ?, due_date = ?, paid = ?, notes = ?
+            WHERE id = ? AND wedding_id = ?
+            RETURNING *
+            """,
+            [
+                merged["installment_name"].strip() if isinstance(merged["installment_name"], str) else merged["installment_name"],
+                merged["amount"],
+                merged["due_date"],
+                merged["paid"],
+                merged["notes"],
+                inst_id,
+                wid,
+            ],
+        )
+        updated = row_to_dict(res.rows[0])
+        updated["item_name"] = current_data["item_name"]
+        updated["category"] = current_data["category"]
+        return updated
+
+
+@router.delete("/installments/{inst_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_budget_installment(
+    inst_id: int,
+    current_user: UserResponse = Depends(get_current_user),
+):
+    with get_db() as client:
+        wid = _get_or_create_wedding_id(client, current_user)
+        res = client.execute(
+            "SELECT id FROM budget_installments WHERE id = ? AND wedding_id = ?",
+            [inst_id, wid],
+        )
+        if not res.rows:
+            raise HTTPException(status_code=404, detail="Rata nie istnieje")
+        client.execute("DELETE FROM budget_installments WHERE id = ? AND wedding_id = ?", [inst_id, wid])
